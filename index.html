@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" class="bg-[#030303] text-gray-100 antialiased selection:bg-emerald-500/30">
+<html lang="en" class="bg-[#030303] text-gray-100 antialiased selection:bg-emerald-500/30 overflow-x-hidden">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WhatsHappenin // Live</title>
+    <title>WhatsHappenin // The Weekend, Curated</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,19 +21,37 @@
         }
     </script>
     <style>
+        /* Strict Viewport Bounds to Prevent Side-Scroll Overflow */
+        html, body {
+            max-width: 100%;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Premium UI Structural Recipe Layers */
         .glass-sticky {
-            background: rgba(5, 5, 5, 0.8);
-            backdrop-filter: blur(32px);
-            -webkit-backdrop-filter: blur(32px);
+            background: rgba(5, 5, 5, 0.85);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
             border-bottom: 1px solid rgba(255, 255, 255, 0.04);
         }
+        .glass-panel {
+            background: rgba(18, 18, 18, 0.6);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
         .glass-card {
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(0, 0, 0, 0.9) 100%);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(0, 0, 0, 0.95) 100%);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+        }
+        .premium-glow { 
+            box-shadow: 0 0 40px -10px rgba(16, 185, 129, 0.12); 
         }
         .text-gradient {
             background: linear-gradient(135deg, #34d399 0%, #059669 100%);
@@ -42,27 +60,34 @@
         }
     </style>
 </head>
-<body class="flex justify-center items-start min-h-screen relative overflow-x-hidden bg-[#030303]">
+<body class="flex justify-center items-start min-h-screen bg-[#030303] pb-6">
+
+    <div class="absolute top-[-10%] left-[-10%] w-[400px] h-[400px] bg-emerald-500/[0.03] rounded-full blur-[120px] pointer-events-none"></div>
+    <div class="absolute top-[30%] right-[-10%] w-[400px] h-[400px] bg-emerald-500/[0.02] rounded-full blur-[120px] pointer-events-none"></div>
 
     <main 
         x-data="{ 
             searchQuery: '',
             selectedVibe: 'All',
+            activeTab: 'weekend',
             isLoading: true,
             events: [],
+            steppedOutEvents: [], // Local track container to prevent double clicks
 
             init() {
                 const apiURL = 'https://script.google.com/macros/s/AKfycbziBiOAPM6HDx7QZhJDuOQpu6FG4ZjbiWaj2AA-V5efsq_sgWPK41rPVCvjVdSnHE8X2g/exec';
                 
+                // Read local browser state for user checkins
+                this.steppedOutEvents = JSON.parse(localStorage.getItem('whatsHap_stepping_out') || '[]');
+                
                 fetch(apiURL)
                     .then(res => res.json())
                     .then(data => { 
-                        // Directly attach incoming database rows safely
                         this.events = Array.isArray(data) ? data : []; 
                         this.isLoading = false; 
                     })
                     .catch(err => { 
-                        console.error('Data pipeline connection failed:', err); 
+                        console.error('API Pipeline Broken:', err); 
                         this.isLoading = false; 
                     });
             },
@@ -74,15 +99,23 @@
                         String(e.artist || '').toLowerCase().includes(query) || 
                         String(e.venue || '').toLowerCase().includes(query) || 
                         String(e.city || '').toLowerCase().includes(query);
-                    
                     const matchesVibe = this.selectedVibe === 'All' || 
                         String(e.vibe || '').toLowerCase() === this.selectedVibe.toLowerCase();
-                    
                     return matchesSearch && matchesVibe;
                 });
+            },
+            toggleSteppingOut(event) {
+                if (this.steppedOutEvents.includes(event.id)) return; // Lock if already stepped out
+                
+                // Safely handle current baseline value numbers
+                let currentCount = parseInt(event.attending_count || event.clicks || '0', 10);
+                event.attending_count = currentCount + 1;
+                
+                this.steppedOutEvents.push(event.id);
+                localStorage.setItem('whatsHap_stepping_out', JSON.stringify(this.steppedOutEvents));
             }
         }"
-        class="w-full max-w-md min-h-screen bg-[#070707]/90 shadow-2xl relative border-x border-white/[0.03] flex flex-col justify-between"
+        class="w-full max-w-md min-h-screen bg-[#070707]/95 shadow-2xl relative border-x border-white/[0.03] flex flex-col justify-between overflow-hidden"
     >
         
         <div class="px-6 pt-7 pb-4 sticky top-0 z-50 glass-sticky">
@@ -101,13 +134,13 @@
 
             <div class="mt-5 relative">
                 <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                    <i data-lucide="search" class="w-4 h-4 text-emerald-400/80"></i>
+                    <i data-lucide="search" class="w-4 h-4 text-emerald-400/70"></i>
                 </div>
                 <input 
                     type="text" 
                     x-model="searchQuery"
                     placeholder="Search artists, venues, or cities..." 
-                    class="w-full pl-11 pr-4 py-3.5 bg-white/[0.02] border border-white/[0.05] focus:border-emerald-500/30 rounded-2xl text-sm text-white outline-none transition-all duration-300"
+                    class="w-full pl-11 pr-4 py-3.5 bg-white/[0.02] border border-white/[0.05] focus:border-emerald-500/20 rounded-2xl text-sm placeholder-gray-600 text-white outline-none transition-all duration-300 shadow-xl"
                 />
             </div>
 
@@ -115,8 +148,8 @@
                 <template x-for="vibe in ['All', 'Nightlife', 'ChilledVibes', 'Foodie', 'Networking']">
                     <button 
                         @click="selectedVibe = vibe"
-                        :class="selectedVibe === vibe ? 'bg-white text-black font-bold' : 'bg-white/[0.02] text-gray-400 border-white/[0.04]'"
-                        class="px-4 py-2 rounded-xl border text-xs font-medium transition-all duration-300"
+                        :class="selectedVibe === vibe ? 'bg-white text-black font-bold border-transparent' : 'bg-white/[0.02] text-gray-400 border-white/[0.04]'"
+                        class="px-4 py-2 rounded-xl border text-xs font-medium tracking-tight transition-all duration-300 whitespace-nowrap"
                     >
                         <span x-text="vibe === 'All' ? '⚡ All' : vibe === 'ChilledVibes' ? '☕ Chill' : vibe === 'Nightlife' ? '🕺 Party' : vibe === 'Foodie' ? '🍹 Food' : '👔 Mixers'"></span>
                     </button>
@@ -124,44 +157,109 @@
             </div>
         </div>
 
-        <div class="px-6 flex-grow pb-24 overflow-y-auto no-scrollbar">
+        <div class="px-6 flex-grow pb-28 overflow-y-auto no-scrollbar">
             
             <div x-show="isLoading" class="w-full flex flex-col items-center justify-center py-32 space-y-3">
                 <div class="w-5 h-5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
-                <p class="text-[11px] text-gray-600 font-semibold tracking-wider uppercase">Syncing Database Matrix...</p>
+                <p class="text-[11px] text-gray-600 font-semibold tracking-wider uppercase">Syncing Curations...</p>
             </div>
 
-            <div x-show="!isLoading" class="mt-6 space-y-6">
-                <template x-for="event in filteredEvents" :key="event.id">
-                    <div class="relative h-[400px] rounded-[28px] overflow-hidden border border-white/[0.06] shadow-2xl bg-zinc-900">
-                        <img :src="event.image" class="absolute inset-0 w-full h-full object-cover" alt="Event Flyer" @error="$el.src='https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&q=80&w=800'">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
-                        
-                        <div class="absolute top-4 left-4">
-                            <span class="px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md text-[9px] font-bold tracking-wider text-white border border-white/10 uppercase" x-text="event.tag || 'LIVE'"></span>
-                        </div>
+            <div x-show="!isLoading" class="mt-6">
+                
+                <div x-show="activeTab === 'weekend'" class="space-y-4">
+                    <h2 class="text-xs uppercase font-extrabold tracking-widest text-gray-400 flex items-center gap-2">
+                        Featured Highlights <span class="w-1 h-1 rounded-full bg-emerald-400"></span>
+                    </h2>
 
-                        <div class="absolute bottom-4 left-4 right-4 p-4 rounded-2xl glass-card space-y-1.5">
-                            <span class="text-[10px] font-bold tracking-widest text-emerald-400 uppercase block" x-text="(event.date || '') + ' • ' + (event.time || '')"></span>
-                            <h3 class="text-base font-bold text-white tracking-tight leading-snug" x-text="event.title"></h3>
-                            
-                            <div class="space-y-1 pt-2 text-xs text-gray-400 border-t border-white/[0.05]">
-                                <p class="flex items-center gap-2 truncate"><i data-lucide="mic" class="w-3.5 h-3.5 text-gray-500"></i><span class="font-medium text-gray-300" x-text="event.artist || 'Various Artists'"></span></p>
-                                <p class="flex items-center gap-2 truncate"><i data-lucide="map-pin" class="w-3.5 h-3.5 text-gray-500"></i><span x-text="(event.venue || '') + ', ' + (event.city || '')"></span></p>
+                    <div class="flex gap-4 overflow-x-auto snap-x snap-mandatory no-scrollbar pb-4 w-full">
+                        <template x-for="event in filteredEvents.filter(e => String(e.type).toLowerCase() === 'weekend')" :key="event.id">
+                            <div class="w-[82vw] max-w-[290px] shrink-0 snap-start relative">
+                                <div class="relative h-[420px] rounded-[32px] overflow-hidden border border-white/[0.06] shadow-2xl bg-zinc-900 flex flex-col justify-between p-4">
+                                    
+                                    <img :src="event.image" class="absolute inset-0 w-full h-full object-cover" alt="Flyer" @error="$el.src='https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&q=80&w=800'">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+                                    
+                                    <div class="relative z-10 flex justify-between items-center w-full">
+                                        <span class="px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md text-[9px] font-bold tracking-wider text-white border border-white/10 uppercase" x-text="event.tag || 'HOT'"></span>
+                                        
+                                        <template x-if="event.whatsapp_link">
+                                            <a :href="event.whatsapp_link" target="_blank" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 backdrop-blur-md border border-emerald-500/30 text-emerald-400 text-[10px] font-bold tracking-tight transition-transform active:scale-95">
+                                                <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+                                                Join Crew
+                                            </a>
+                                        </template>
+                                    </div>
+
+                                    <div class="relative z-10 w-full rounded-2xl glass-card p-4 space-y-3">
+                                        <div>
+                                            <span class="text-[10px] font-bold tracking-widest text-emerald-400 uppercase block" x-text="(event.date || '') + ' • ' + (event.time || '')"></span>
+                                            <h3 class="text-sm font-bold text-white tracking-tight leading-snug mt-0.5" x-text="event.title"></h3>
+                                        </div>
+                                        
+                                        <div class="space-y-1 text-xs text-gray-400 border-t border-white/[0.05] pt-2">
+                                            <p class="flex items-center gap-2 truncate"><i data-lucide="mic" class="w-3.5 h-3.5 text-gray-500"></i><span class="font-medium text-gray-300" x-text="event.artist || 'Various'"></span></p>
+                                            <p class="flex items-center gap-2 truncate"><i data-lucide="map-pin" class="w-3.5 h-3.5 text-gray-500"></i><span x-text="(event.venue || '') + ', ' + (event.city || '')"></span></p>
+                                        </div>
+
+                                        <button 
+                                            @click="toggleSteppingOut(event)"
+                                            :class="steppedOutEvents.includes(event.id) ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-white text-black font-bold hover:bg-gray-100'"
+                                            class="w-full py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 transition-all duration-300 border shadow-md active:scale-[0.98]"
+                                        >
+                                            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                                            <span x-text="steppedOutEvents.includes(event.id) ? 'Locked In ✓' : 'I\'m Stepping Out'"></span>
+                                            <span class="px-1.5 py-0.5 rounded-md text-[10px] bg-black/10 text-current ml-0.5" x-text="event.attending_count || event.clicks || '0'"></span>
+                                        </button>
+                                    </div>
+
+                                </div>
                             </div>
-                        </div>
+                        </template>
                     </div>
-                </template>
+                </div>
+
+                <div x-show="activeTab === 'weekday'" class="space-y-3">
+                    <h2 class="text-xs uppercase font-extrabold tracking-widest text-gray-400">Mid-Week Sessions</h2>
+                    <div class="grid grid-cols-1 gap-3">
+                        <template x-for="event in filteredEvents.filter(e => String(e.type).toLowerCase() === 'weekday')" :key="event.id">
+                            <div class="glass-panel rounded-2xl p-3.5 flex gap-4 border border-white/[0.03]">
+                                <img :src="event.image" class="w-16 h-16 rounded-xl object-cover shrink-0 border border-white/10 my-auto" @error="$el.src='https://images.unsplash.com/photo-1510915228340-29c85a43dcfe?auto=format&fit=crop&q=80&w=800'">
+                                <div class="min-w-0 flex-grow flex flex-col justify-between space-y-2">
+                                    <div class="flex justify-between items-start gap-2">
+                                        <div class="min-w-0">
+                                            <h3 class="text-sm font-bold text-white truncate" x-text="event.title"></h3>
+                                            <p class="text-xs text-gray-400 truncate" x-text="(event.artist || 'Various') + ' // ' + (event.venue || '')"></p>
+                                        </div>
+                                        
+                                        <template x-if="event.whatsapp_link">
+                                            <a :href="event.whatsapp_link" target="_blank" class="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">
+                                                <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+                                            </a>
+                                        </template>
+                                    </div>
+                                    <div class="flex justify-between items-center text-[11px] border-t border-white/[0.03] pt-1.5">
+                                        <span class="text-emerald-400 font-semibold uppercase tracking-wider text-[10px]" x-text="(event.city || '') + ' • ' + (event.date || '')"></span>
+                                        <button @click="toggleSteppingOut(event)" class="text-gray-400 hover:text-white flex items-center gap-1 text-[10px]">
+                                            <i data-lucide="sparkles" class="w-3 h-3 text-emerald-400"></i>
+                                            <span x-text="event.attending_count || event.clicks || '0'"></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
             </div>
 
             <div x-show="!isLoading && filteredEvents.length === 0" class="w-full text-center py-24 space-y-1">
                 <i data-lucide="help-circle" class="w-5 h-5 text-gray-600 mx-auto"></i>
-                <p class="text-sm text-gray-400 font-medium">No curation matches your query.</p>
-                <p class="text-xs text-gray-600">Try clearing your filters or changing search keywords.</p>
+                <p class="text-sm text-gray-400 font-medium">No active tracks found.</p>
+                <p class="text-xs text-gray-600">Try structural keyword combinations or clear filters.</p>
             </div>
         </div>
 
-        <footer class="mt-auto px-6 py-8 border-t border-white/[0.03] bg-[#050505]/60 text-center space-y-2">
+        <footer class="mt-auto px-6 pt-6 pb-28 border-t border-white/[0.03] bg-[#050505]/80 text-center space-y-2 relative z-10">
             <div class="flex items-center justify-center gap-1.5 opacity-40">
                 <span class="text-[9px] font-bold uppercase tracking-widest text-gray-400">Engineered by</span>
                 <span class="text-xs font-black tracking-tight text-white">vyeta<span class="text-emerald-400">.</span></span>
@@ -171,15 +269,39 @@
             </div>
         </footer>
 
+        <nav class="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black via-black/95 to-transparent z-50 flex justify-center pointer-events-none">
+            <div class="glass-panel w-full max-w-sm rounded-2xl px-6 py-3.5 flex justify-around items-center border border-white/[0.07] shadow-2xl premium-glow pointer-events-auto">
+                
+                <button @click="activeTab = 'weekend'" class="flex flex-col items-center gap-1 transition-all group" :class="activeTab === 'weekend' ? 'text-emerald-400' : 'text-gray-500'">
+                    <i data-lucide="sparkles" class="w-4 h-4 transition-transform group-hover:scale-105"></i>
+                    <span class="text-[10px] font-bold uppercase tracking-wider">The Weekend</span>
+                </button>
+                
+                <div class="w-px h-5 bg-white/[0.06]"></div>
+
+                <button @click="activeTab = 'weekday'" class="flex flex-col items-center gap-1 transition-all group" :class="activeTab === 'weekday' ? 'text-emerald-400' : 'text-gray-500'">
+                    <i data-lucide="calendar" class="w-4 h-4 transition-transform group-hover:scale-105"></i>
+                    <span class="text-[10px] font-bold uppercase tracking-wider">Weekdays</span>
+                </button>
+                
+            </div>
+        </nav>
+
     </main>
 
     <script>
+        function renderIcons() {
+            if (window.lucide) { window.lucide.createIcons(); }
+        }
         document.addEventListener('alpine:initialized', () => {
-            setTimeout(() => { lucide.createIcons(); }, 150);
+            setTimeout(renderIcons, 150);
         });
         window.addEventListener('load', () => {
-            setTimeout(() => { lucide.createIcons(); }, 400);
+            setTimeout(renderIcons, 400);
         });
+        // Hook internal layout mutations for real-time tracking element rendering
+        const observer = new MutationObserver(() => { setTimeout(renderIcons, 50); });
+        observer.observe(document.body, { childList: true, subtree: true });
     </script>
 </body>
 </html>
