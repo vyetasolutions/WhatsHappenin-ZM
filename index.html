@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-[#050505] text-gray-100 antialiased selection:bg-emerald-500/30">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsHappenin // The Weekend, Curated</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'ui-sans-serif', 'system-ui'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .glass-panel {
+            background: rgba(15, 15, 15, 0.7);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .glass-card {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(0, 0, 0, 0.85) 100%);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .glow-green { box-shadow: 0 0 30px -5px rgba(16, 185, 129, 0.15); }
+    </style>
+</head>
+<body class="flex justify-center items-start min-h-screen relative overflow-x-hidden pb-12">
+
+    <!-- Premium Ambient Lighting -->
+    <div class="absolute top-[-10%] left-[-10%] w-[400px] h-[400px] bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none"></div>
+    <div class="absolute top-[30%] right-[-10%] w-[500px] h-[500px] bg-violet-500/5 rounded-full blur-[120px] pointer-events-none"></div>
+
+    <!-- MAIN APP MOBILE FRAME -->
+    <main 
+        x-data="{ 
+            searchQuery: '',
+            selectedVibe: 'All',
+            activeTab: 'weekend',
+            showToast: false,
+            toastMessage: '',
+            isLoading: true,
+            events: [],
+
+            init() {
+                // REPLACE THIS URL with your deployed Google Apps Script Web App URL
+                const apiURL = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE';
+                
+                if(apiURL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
+                    // Fallback Filler Data matching your exact new search infrastructure for instant preview
+                    this.events = [
+                        { id: 1, title: 'Yo Maps Premium Live', artist: 'Yo Maps', venue: 'East Park Mall', city: 'Lusaka', date: 'Friday, 12 Jun', time: '20:00', type: 'weekend', vibe: 'Nightlife', image: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&q=80&w=800', tag: 'SELLING FAST' },
+                        { id: 2, title: 'Acoustic Wine Tasting', artist: 'Chef 187', venue: 'The Urban Hotel', city: 'Chingola', date: 'Saturday, 13 Jun', time: '18:00', type: 'weekend', vibe: 'ChilledVibes', image: 'https://images.unsplash.com/photo-1510915228340-29c85a43dcfe?auto=format&fit=crop&q=80&w=800', tag: 'HOT TICKET' },
+                        { id: 3, title: 'Sip & Paint Weekend', artist: 'Local Artisans', venue: 'Alliance Française', city: 'Lusaka', date: 'Sunday, 14 Jun', time: '14:00', type: 'weekend', vibe: 'Foodie', image: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&q=80&w=800', tag: 'LIMITED' },
+                        { id: 4, title: 'Copperbelt Tech Hub Mixer', artist: 'Tech Panel', venue: 'Moba Hotel', city: 'Kitwe', date: 'Wednesday, 17 Jun', time: '17:30', type: 'weekday', vibe: 'Networking', image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=800', tag: 'FREE ENTRY' }
+                    ];
+                    this.isLoading = false;
+                } else {
+                    fetch(apiURL)
+                        .then(res => res.json())
+                        .then(data => {
+                            this.events = data;
+                            this.isLoading = false;
+                        })
+                        .catch(err => {
+                            console.error('Error fetching data:', err);
+                            this.isLoading = false;
+                        });
+                }
+            },
+            triggerToast(msg) {
+                this.toastMessage = msg;
+                this.showToast = true;
+                setTimeout(() => { this.showToast = false; }, 3000);
+            },
+            get filteredEvents() {
+                return this.events.filter(e => {
+                    const query = this.searchQuery.toLowerCase();
+                    // Advanced Multi-Field Search Engine (Matches Title, Artist, Venue, or City)
+                    const matchesSearch = 
+                        String(e.title).toLowerCase().includes(query) || 
+                        String(e.artist).toLowerCase().includes(query) || 
+                        String(e.venue).toLowerCase().includes(query) || 
+                        String(e.city).toLowerCase().includes(query);
+                    
+                    const matchesVibe = this.selectedVibe === 'All' || e.vibe === this.selectedVibe;
+                    return matchesSearch && matchesVibe;
+                });
+            }
+        }"
+        class="w-full max-w-md min-h-screen bg-[#0a0a0a]/90 backdrop-blur-3xl shadow-2xl relative border-x border-white/[0.04] flex flex-col justify-between"
+    >
+        
+        <!-- STICKY SEARCH & HEADER BAR -->
+        <div class="px-6 pt-6 pb-3 sticky top-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-lg border-b border-white/[0.02]">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+                        WhatsHappenin<span class="text-emerald-400">.</span>
+                    </h1>
+                    <p class="text-[10px] uppercase font-bold tracking-widest text-gray-500 mt-0.5">The Weekend, Curated</p>
+                </div>
+                <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.06]">
+                    <i data-lucide="map-pin" class="w-3.5 h-3.5 text-emerald-400"></i>
+                    <span class="text-xs font-semibold tracking-wide text-gray-300">Zambia</span>
+                </div>
+            </div>
+
+            <!-- INTELLIGENT MULTI-FIELD SEARCH FIELD -->
+            <div class="mt-5 relative">
+                <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none text-gray-400">
+                    <i data-lucide="search" class="w-4 h-4 text-emerald-400"></i>
+                </div>
+                <input 
+                    type="text" 
+                    x-model="searchQuery"
+                    placeholder="Try 'Yo Maps', 'Lusaka', or 'East Park'..." 
+                    class="w-full pl-11 pr-4 py-3.5 bg-white/[0.03] focus:bg-white/[0.06] border border-white/[0.06] focus:border-emerald-500/40 rounded-2xl text-sm placeholder-gray-500 outline-none transition-all duration-300 shadow-inner"
+                />
+            </div>
+
+            <!-- VIBE FILTER COMPONENT -->
+            <div class="mt-4 flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                <template x-for="vibe in ['All', 'Nightlife', 'ChilledVibes', 'Foodie', 'Networking']">
+                    <button 
+                        @click="selectedVibe = vibe"
+                        :class="selectedVibe === vibe ? 'bg-emerald-500 text-black font-bold border-transparent glow-green' : 'bg-white/[0.03] text-gray-400 border-white/[0.05] hover:bg-white/[0.06]'"
+                        class="px-4 py-2 rounded-xl border text-xs font-medium whitespace-nowrap transition-all duration-300"
+                    >
+                        <span x-text="vibe === 'All' ? '⚡ All' : vibe === 'ChilledVibes' ? '☕ Chill' : vibe === 'Nightlife' ? '🕺 Party' : vibe === 'Foodie' ? '🍹 Food' : '👔 Mixers'"></span>
+                    </button>
+                </template>
+            </div>
+        </div>
+
+        <!-- APP LIVE DATA CONTAINER VIEW -->
+        <div class="px-6 flex-grow pb-24 overflow-y-auto no-scrollbar">
+            
+            <!-- LOADING FEEDBACK LOOP -->
+            <div x-show="isLoading" class="w-full flex flex-col items-center justify-center py-32 space-y-3">
+                <div class="w-6 h-6 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
+                <p class="text-xs text-gray-500 font-medium">Fetching the baseline beat...</p>
+            </div>
+
+            <div x-show="!isLoading" class="mt-4">
+                <!-- DYNAMIC CONTENT SWITCHER BASED ON TAB NAVIGATION -->
+                
+                <!-- 1. WEEKEND VIEW ENGINE -->
+                <div x-show="activeTab === 'weekend'" class="space-y-6">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-base font-bold text-white flex items-center gap-2">Hot This Weekend <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span></h2>
+                    </div>
+
+                    <div class="flex gap-4 overflow-x-auto snap-x snap-mandatory no-scrollbar -mx-6 px-6 pb-4">
+                        <template x-for="event in filteredEvents.filter(e => e.type === 'weekend')">
+                            <div class="w-[82vw] max-w-[290px] shrink-0 snap-start relative group">
+                                <div class="relative h-[410px] rounded-[28px] overflow-hidden border border-white/[0.08] shadow-2xl">
+                                    <img :src="event.image" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Flyer">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+                                    
+                                    <!-- Context Badging Action Overlay -->
+                                    <div class="absolute top-4 left-4 right-4 flex justify-between items-center">
+                                        <span class="px-2.5 py-1 rounded-lg bg-emerald-400 text-black text-[9px] font-black tracking-wider uppercase" x-text="event.tag"></span>
+                                        <div class="flex gap-1.5">
+                                            <button @click="triggerToast('Saved to Calendar 🗓️')" class="p-2 rounded-xl bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-white/10">
+                                                <i data-lucide="calendar-plus" class="w-4 h-4"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Absolute Glass Layer Details Card -->
+                                    <div class="absolute bottom-4 left-4 right-4 p-4 rounded-2xl glass-card space-y-1.5">
+                                        <p class="text-[10px] font-bold tracking-wide text-emerald-400 uppercase" x-text="event.date + ' @ ' + event.time"></p>
+                                        <h3 class="text-base font-bold text-white tracking-tight leading-snug" x-text="event.title"></h3>
+                                        
+                                        <!-- Artist & Location Granular Layout -->
+                                        <div class="space-y-1 pt-1 text-xs text-gray-400 border-t border-white/[0.05]">
+                                            <p class="flex items-center gap-1.5 truncate"><i data-lucide="mic" class="w-3 h-3 text-gray-500"></i><span x-text="event.artist"></span></p>
+                                            <p class="flex items-center gap-1.5 truncate"><i data-lucide="map-pin" class="w-3 h-3 text-gray-500"></i><span x-text="event.venue + ', ' + event.city"></span></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- 2. WEEKDAY LIST ENGINE -->
+                <div x-show="activeTab === 'weekday'" class="space-y-4">
+                    <h2 class="text-base font-bold text-white">Weekday Vibes</h2>
+                    <div class="grid grid-cols-1 gap-3">
+                        <template x-for="event in filteredEvents.filter(e => e.type === 'weekday')">
+                            <div class="glass-panel rounded-2xl p-4 flex gap-4 border border-white/[0.04]">
+                                <img :src="event.image" class="w-16 h-16 rounded-xl object-cover shrink-0 border border-white/10 my-auto">
+                                <div class="min-w-0 flex-grow flex flex-col justify-between">
+                                    <div>
+                                        <h3 class="text-sm font-bold text-white truncate" x-text="event.title"></h3>
+                                        <p class="text-xs text-gray-400 truncate mt-0.5" x-text="event.artist + ' • ' + event.venue"></p>
+                                    </div>
+                                    <div class="flex justify-between items-center mt-2 text-[11px]">
+                                        <span class="text-emerald-400 font-semibold" x-text="event.city + ' // ' + event.date"></span>
+                                        <button @click="triggerToast('Calendar Reminder Set!')" class="text-gray-400 hover:text-white"><i data-lucide="calendar" class="w-3.5 h-3.5"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Zero Results State Interface Handler -->
+            <div x-show="!isLoading && filteredEvents.length === 0" class="w-full text-center py-24 space-y-2">
+                <i data-lucide="alert-circle" class="w-8 h-8 text-gray-600 mx-auto"></i>
+                <p class="text-sm text-gray-400 font-medium">Nothing happening under that search right now.</p>
+                <p class="text-xs text-gray-600">Try adjusting your spelling or category vibe check.</p>
+            </div>
+        </div>
+
+        <!-- TOAST PORTAL FEEDBACK -->
+        <div x-show="showToast" x-transition class="absolute bottom-20 left-6 right-6 z-50 p-4 rounded-xl glass-panel text-white text-xs tracking-wide flex items-center gap-3 border border-emerald-500/30 glow-green shadow-xl" style="display: none;">
+            <div class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></div>
+            <span x-data x-text="toastMessage"></span>
+        </div>
+
+        <!-- CORE FOOTER NAVIGATION TAB CONTROLLER -->
+        <nav class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black via-black/95 to-black/80 border-t border-white/[0.04] backdrop-blur-md z-40">
+            <div class="flex justify-around items-center max-w-sm mx-auto">
+                <button @click="activeTab = 'weekend'" class="flex flex-col items-center gap-1 transition-all" :class="activeTab === 'weekend' ? 'text-emerald-400' : 'text-gray-500'">
+                    <i data-lucide="sparkles" class="w-5 h-5"></i>
+                    <span class="text-[10px] font-bold">The Weekend</span>
+                </button>
+                <button @click="activeTab = 'weekday'" class="flex flex-col items-center gap-1 transition-all" :class="activeTab === 'weekday' ? 'text-emerald-400' : 'text-gray-500'">
+                    <i data-lucide="calendar" class="w-5 h-5"></i>
+                    <span class="text-[10px] font-bold">Weekdays</span>
+                </button>
+            </div>
+        </nav>
+
+    </main>
+
+    <script>lucide.createIcons();</script>
+</body>
+</html>
