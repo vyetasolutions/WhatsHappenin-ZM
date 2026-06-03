@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>WhatsHappenin // The Weekend, Curated</title>
     
+    <!-- PREMIUM WHATSAPP OPEN GRAPH LINK EMBED -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="WhatsHappenin // The Weekend, Curated">
     <meta property="og:description" content="Discover the best events, nightlife, and chilled vibes across Zambia this weekend. Powered by Vyeta.">
@@ -13,6 +14,7 @@
     <meta property="og:image:type" content="image/jpeg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -62,6 +64,7 @@
 </head>
 <body class="flex justify-center items-start min-h-screen bg-[#030303] pb-6">
 
+    <!-- Ambient Grid Background Flare -->
     <div class="absolute top-[-10%] left-[-10%] w-[400px] h-[400px] bg-emerald-500/[0.03] rounded-full blur-[120px] pointer-events-none"></div>
 
     <main 
@@ -122,20 +125,30 @@
                 this.activeVibeTarget = event;
                 this.vibeModalOpen = true;
             },
-            triggerWhatsAppInvite(event) {
-                const message = `📍 *WHAT\'S HAPPENIN UPDATE* \n\n` +
-                                `🔥 *Event:* ${event.title}\n` +
-                                `🎙️ *Artist:* ${event.artist || 'Various'}\n` +
-                                `🏢 *Venue:* ${event.venue} (${event.city})\n` +
-                                `🗓️ *When:* ${event.date} @ ${event.time}\n\n` +
-                                `Let\'s pull up together! Check out the full line-up here: \n` +
-                                `👉 https://vyetasolutions.github.io/`;
-                window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
+            shareEvent(event) {
+                const title = event.title || 'Event';
+                const artist = event.artist || 'Various';
+                const venue = event.venue || 'Venue';
+                const city = event.city || 'Zambia';
+                const date = event.date || 'This Weekend';
+                const time = event.time || 'Late';
+                
+                const textMessage = '📍 *WHAT\'S HAPPENIN UPDATE* \n\n' +
+                                    '🔥 *Event:* ' + title + '\n' +
+                                    '🎙️ *Artist:* ' + artist + '\n' +
+                                    '🏢 *Venue:* ' + venue + ' (' + city + ')\n' +
+                                    '🗓️ *When:* ' + date + ' @ ' + time + '\n\n' +
+                                    'Let\'s pull up together! Check the full dynamic line-up here: \n' +
+                                    '👉 https://vyetasolutions.github.io/';
+                                    
+                const shareUrl = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(textMessage);
+                window.open(shareUrl, '_blank');
             }
         }"
         class="w-full max-w-md min-h-screen bg-[#070707]/95 shadow-2xl relative border-x border-white/[0.03] flex flex-col justify-between overflow-hidden"
     >
         
+        <!-- HEADER INTERFACE (No loading indicators exist) -->
         <div class="px-6 pt-7 pb-4 sticky top-0 z-40 glass-sticky">
             <div class="flex justify-between items-center">
                 <div>
@@ -150,6 +163,7 @@
                 </div>
             </div>
 
+            <!-- Search Console Input -->
             <div class="mt-5 relative">
                 <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
                     <i data-lucide="search" class="w-4 h-4 text-emerald-400/80"></i>
@@ -157,6 +171,7 @@
                 <input type="text" x-model="searchQuery" placeholder="Search artists, venues, or cities..." class="w-full pl-11 pr-4 py-3.5 bg-white/[0.02] border border-white/[0.05] focus:border-emerald-500/20 rounded-2xl text-sm placeholder-gray-600 text-white outline-none transition-all duration-300" />
             </div>
 
+            <!-- Vibe Segment Selector Filters -->
             <div class="mt-4 flex gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
                 <template x-for="vibe in ['All', 'Nightlife', 'ChilledVibes', 'Foodie', 'Networking']">
                     <button @click="selectedVibe = vibe" :class="selectedVibe === vibe ? 'bg-white text-black font-bold' : 'bg-white/[0.02] text-gray-400 border-white/[0.04]'" class="px-4 py-2 rounded-xl border text-xs font-medium transition-all duration-300 whitespace-nowrap">
@@ -166,9 +181,11 @@
             </div>
         </div>
 
+        <!-- DYNAMIC APP TIMELINE VIEWPORT -->
         <div class="px-6 flex-grow pb-28 overflow-y-auto no-scrollbar">
             <div class="mt-6">
                 
+                <!-- WEEKEND TRACK TAB CONTROLLER -->
                 <div x-show="activeTab === 'weekend'" class="space-y-4">
                     <h2 class="text-xs uppercase font-extrabold tracking-widest text-gray-400 flex items-center gap-2">Featured Highlights <span class="w-1 h-1 rounded-full bg-emerald-400"></span></h2>
 
@@ -179,6 +196,7 @@
                                     <img :src="event.image" class="absolute inset-0 w-full h-full object-cover" alt="Flyer" @error="$el.src='https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&q=80&w=800'">
                                     <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
                                     
+                                    <!-- Context Card Header Actions -->
                                     <div class="relative z-10 flex justify-between items-center w-full">
                                         <template x-if="event.vibe_status">
                                             <button @click="openVibeCheck(event)" class="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md border border-white/10 text-[9px] font-bold text-emerald-400 tracking-wider uppercase">
@@ -189,11 +207,13 @@
                                             <span class="px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md text-[9px] font-bold tracking-wider text-white border border-white/10 uppercase" x-text="event.tag || 'CURATED'"></span>
                                         </template>
                                         
-                                        <button @click="triggerWhatsAppInvite(event)" class="p-2 rounded-xl bg-black/40 backdrop-blur-md border border-white/10 text-emerald-400 hover:bg-white/10 transition-transform active:scale-95">
+                                        <!-- WhatsApp Premium Clean Share Trigger -->
+                                        <button @click="shareEvent(event)" class="p-2 rounded-xl bg-black/40 backdrop-blur-md border border-white/10 text-emerald-400 hover:bg-white/10 transition-transform active:scale-95">
                                             <i data-lucide="send" class="w-4 h-4"></i>
                                         </button>
                                     </div>
 
+                                    <!-- Bottom Info Block Overlay Card -->
                                     <div class="relative z-10 w-full rounded-2xl glass-card p-4 space-y-3">
                                         <div>
                                             <span class="text-[10px] font-bold tracking-widest text-emerald-400 uppercase block" x-text="(event.date || '') + ' • ' + (event.time || '')"></span>
@@ -217,6 +237,7 @@
                     </div>
                 </div>
 
+                <!-- WEEKDAY TRACK LIST VIEW Tab CONTROLLER -->
                 <div x-show="activeTab === 'weekday'" class="space-y-3">
                     <h2 class="text-xs uppercase font-extrabold tracking-widest text-gray-400">Mid-Week Sessions</h2>
                     <div class="grid grid-cols-1 gap-3">
@@ -230,7 +251,9 @@
                                             <p class="text-xs text-gray-400 truncate" x-text="(event.artist || 'Various') + ' // ' + (event.venue || '')"></p>
                                         </div>
                                         <div class="flex gap-1 shrink-0">
-                                            <button @click="triggerWhatsAppInvite(event)" class="p-1.5 rounded-lg bg-white/[0.03] border border-white/[0.05] text-emerald-400"><i data-lucide="send" class="w-3.5 h-3.5"></i></button>
+                                            <button @click="shareEvent(event)" class="p-1.5 rounded-lg bg-white/[0.03] border border-white/[0.05] text-emerald-400 hover:bg-white/10 transition-transform active:scale-95">
+                                                <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                                            </button>
                                         </div>
                                     </div>
                                     <div class="flex justify-between items-center text-[11px] border-t border-white/[0.03] pt-1.5">
@@ -247,6 +270,7 @@
                 </div>
             </div>
 
+            <!-- EMPTY FALLBACK COMPONENT -->
             <div x-show="filteredEvents.length === 0" class="w-full text-center py-24 space-y-1">
                 <i data-lucide="help-circle" class="w-5 h-5 text-gray-600 mx-auto"></i>
                 <p class="text-sm text-gray-400 font-medium">No active tracks found.</p>
@@ -254,6 +278,7 @@
             </div>
         </div>
 
+        <!-- LIVE VIBE CHECK OVERLAY PANEL -->
         <div x-show="vibeModalOpen" class="fixed inset-0 z-50 flex items-end justify-center px-4 pb-6 bg-black/80 backdrop-blur-sm" style="display: none;" x-transition>
             <div @click.away="vibeModalOpen = false" class="w-full max-w-sm glass-panel rounded-[32px] p-6 border border-white/10 space-y-5 text-center shadow-2xl premium-glow">
                 <div class="w-12 h-1.5 bg-white/10 rounded-full mx-auto mb-2"></div>
@@ -275,6 +300,7 @@
             </div>
         </div>
 
+        <!-- PREMIUM CORPORATE FOOTER -->
         <footer class="mt-auto px-6 py-6 border-t border-white/[0.03] bg-[#050505]/80 text-center space-y-2 relative z-30">
             <div class="flex items-center justify-center gap-1.5 opacity-40">
                 <span class="text-[9px] font-bold uppercase tracking-widest text-gray-400">Engineered by</span>
@@ -283,6 +309,7 @@
             <div class="text-[8px] font-bold uppercase tracking-widest text-gray-700">© 2026 Vyeta Digital Solutions. All Rights Reserved.</div>
         </footer>
 
+        <!-- NAVIGATION CONSOLE DOCK PILL -->
         <nav class="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black via-black/95 to-transparent z-40 flex justify-center pointer-events-none">
             <div class="glass-panel w-full max-w-sm rounded-2xl px-6 py-3.5 flex justify-around items-center border border-white/[0.07] shadow-2xl premium-glow pointer-events-auto">
                 <button @click="activeTab = 'weekend'" class="flex flex-col items-center gap-1 transition-all group" :class="activeTab === 'weekend' ? 'text-emerald-400' : 'text-gray-500'">
@@ -299,6 +326,7 @@
 
     </main>
 
+    <!-- LUCIDE COMPONENT DYNAMIC RENDERER -->
     <script>
         function renderIcons() { if (window.lucide) { window.lucide.createIcons(); } }
         document.addEventListener('alpine:initialized', () => { setTimeout(renderIcons, 150); });
